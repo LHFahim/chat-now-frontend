@@ -7,9 +7,7 @@ export const useAuthCheck = () => {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    const localAuth = localStorage.getItem("token");
-    if (!localAuth) {
-    }
+    const localAuth = localStorage.getItem("auth");
 
     if (localAuth) {
       const auth = JSON.parse(localAuth);
