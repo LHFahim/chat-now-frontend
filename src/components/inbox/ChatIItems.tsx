@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useGetConversationsQuery } from "../../features/conversations/conversationsApi";
 import { User } from "../../features/types/types";
-import getPartnerInfo from "../../utils/helper-functions";
+import { getPartnerInfo } from "../../utils/helper-functions";
 import Error from "../ui/Error";
 import ChatItem from "./ChatItem";
 
