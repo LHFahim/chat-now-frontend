@@ -7,7 +7,7 @@ export default function PublicRoute({ children }: any) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoggedIn) navigate("/inbox");
+    if (isLoggedIn) navigate("/inbox");
   }, [isLoggedIn, navigate]);
 
   return children;
