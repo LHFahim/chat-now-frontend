@@ -27,9 +27,7 @@ export const authSlice = apiSlice.injectEndpoints({
               user: result.data.user,
             })
           );
-        } catch (error) {
-          // console.log(error);
-        }
+        } catch (error) {}
       },
     }),
     login: builder.mutation({
@@ -56,9 +54,7 @@ export const authSlice = apiSlice.injectEndpoints({
               user: result.data.user,
             })
           );
-        } catch (error) {
-          // console.log(error);
-        }
+        } catch (error) {}
       },
     }),
   }),

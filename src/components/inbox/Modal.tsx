@@ -40,7 +40,6 @@ export default function Modal({ open, control }: any) {
       )
         .unwrap()
         .then((data: any) => {
-          console.log("🚀 ~ .then ~ data:", data);
           setConversation(data);
         })
         .catch((err: any) => {
@@ -79,7 +78,6 @@ export default function Modal({ open, control }: any) {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log("Form submitted");
 
     if ((conversation as unknown as any)?.length > 0) {
       // edit conversation
@@ -90,6 +88,7 @@ export default function Modal({ open, control }: any) {
           users: [loggedInUser, participant[0]],
           message,
           timestamp: new Date().getTime(),
+          loggedInUser: loggedInUser,
         },
       });
     } else if ((conversation as unknown as any)?.length === 0) {
@@ -99,6 +98,7 @@ export default function Modal({ open, control }: any) {
         users: [loggedInUser, participant[0]],
         message,
         timestamp: new Date().getTime(),
+        loggedInUser: loggedInUser,
       });
     }
   };

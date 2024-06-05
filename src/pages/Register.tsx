@@ -18,8 +18,6 @@ export default function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("data", data);
-    console.log("responseError", responseError);
     if ((responseError as unknown as any)?.data) {
       setError((responseError as unknown as any).data);
     }

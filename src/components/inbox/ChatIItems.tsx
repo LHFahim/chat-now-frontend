@@ -12,9 +12,7 @@ export default function ChatItems() {
   const { user } = useSelector((state: any) => state.auth) || {};
   const { email } = (user as User) || {};
 
-  const { data, isLoading, isError, error } = useGetConversationsQuery(
-    "sumit@learnwithsumit.com"
-  );
+  const { data, isLoading, isError, error } = useGetConversationsQuery(email);
   let content = null;
 
   if (isLoading) {

@@ -1,4 +1,5 @@
 import { apiSlice } from "../api/apiSlice";
+import { messagesApi } from "../messages/messagesApi";
 
 export const conversationsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -16,6 +17,30 @@ export const conversationsApi = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
+
+      async onQueryStarted(arg: any, { queryFulfilled, dispatch }: any) {
+        const conversation = await queryFulfilled;
+
+        if (conversation?.data?.id) {
+          // silent entry to message table
+          const users: any[] = arg?.users || {};
+
+          const senderUser = arg.loggedInUser;
+          const receiverUser = users?.find(
+            (user: any) => user.email !== arg.loggedInUser?.email
+          );
+
+          dispatch(
+            messagesApi.endpoints.addMessage.initiate({
+              conversationId: conversation?.data?.id,
+              sender: senderUser,
+              receiver: receiverUser,
+              message: arg.message,
+              timestamp: arg.timestamp,
+            })
+          );
+        }
+      },
     }),
     editConversation: builder.mutation({
       query: ({ id, data }) => ({
@@ -23,6 +48,29 @@ export const conversationsApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
+
+      async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+        const conversation = await queryFulfilled;
+
+        if (conversation?.data?.id) {
+          // silent entry to message table
+          const users: any[] = arg.data?.users || {};
+          const senderUser = arg.data?.loggedInUser;
+          const receiverUser = users?.find(
+            (user: any) => user.email !== arg.data?.loggedInUser?.email
+          );
+
+          dispatch(
+            messagesApi.endpoints.addMessage.initiate({
+              conversationId: conversation?.data?.id,
+              sender: senderUser,
+              receiver: receiverUser,
+              message: arg.data.message,
+              timestamp: arg.data.timestamp,
+            })
+          );
+        }
+      },
     }),
   }),
 });
