@@ -50,25 +50,44 @@ export const conversationsApi = apiSlice.injectEndpoints({
       }),
 
       async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-        const conversation = await queryFulfilled;
+        // optimistic cache update start
+        const patchResult1 = dispatch(
+          conversationsApi.util.updateQueryData(
+            "getConversations",
+            arg?.data?.loggedInUser?.email,
+            (draft: any[]) => {
+              // eslint-disable-next-line eqeqeq
+              const draftConversation = draft.find((c: any) => c.id == arg.id);
+              draftConversation.message = arg.data.message;
+              draftConversation.timestamp = arg.data.timestamp;
+            }
+          )
+        );
 
-        if (conversation?.data?.id) {
-          // silent entry to message table
-          const users: any[] = arg.data?.users || {};
-          const senderUser = arg.data?.loggedInUser;
-          const receiverUser = users?.find(
-            (user: any) => user.email !== arg.data?.loggedInUser?.email
-          );
+        // optimistic cache update end
 
-          dispatch(
-            messagesApi.endpoints.addMessage.initiate({
-              conversationId: conversation?.data?.id,
-              sender: senderUser,
-              receiver: receiverUser,
-              message: arg.data.message,
-              timestamp: arg.data.timestamp,
-            })
-          );
+        try {
+          const conversation = await queryFulfilled;
+          if (conversation?.data?.id) {
+            // silent entry to message table
+            const users: any[] = arg.data?.users || {};
+            const senderUser = arg.data?.loggedInUser;
+            const receiverUser = users?.find(
+              (user: any) => user.email !== arg.data?.loggedInUser?.email
+            );
+
+            dispatch(
+              messagesApi.endpoints.addMessage.initiate({
+                conversationId: conversation?.data?.id,
+                sender: senderUser,
+                receiver: receiverUser,
+                message: arg.data.message,
+                timestamp: arg.data.timestamp,
+              })
+            );
+          }
+        } catch (error) {
+          patchResult1.undo();
         }
       },
     }),
