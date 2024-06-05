@@ -1,5 +1,5 @@
 import { apiSlice } from "../api/apiSlice";
-import { messagesApi } from "../messages/messagesApi";
+import { messagesApi } from "./../messages/messagesApi";
 
 export const conversationsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -19,26 +19,43 @@ export const conversationsApi = apiSlice.injectEndpoints({
       }),
 
       async onQueryStarted(arg: any, { queryFulfilled, dispatch }: any) {
-        const conversation = await queryFulfilled;
+        // optimistic cache update start
+        // FIXME: will do this later when i do my own backend
+        // const patchResult = dispatch(
+        //   conversationsApi.util.updateQueryData(
+        //     "getConversations",
+        //     arg?.data?.loggedInUser?.email,
+        //     (draft: any[]) => {
+        //       draft.push({});
+        //     }
+        //   )
+        // );
+        // optimistic cache update end
 
-        if (conversation?.data?.id) {
-          // silent entry to message table
-          const users: any[] = arg?.users || {};
+        try {
+          const conversation = await queryFulfilled;
 
-          const senderUser = arg.loggedInUser;
-          const receiverUser = users?.find(
-            (user: any) => user.email !== arg.loggedInUser?.email
-          );
+          if (conversation?.data?.id) {
+            // silent entry to message table
+            const users: any[] = arg?.users || {};
 
-          dispatch(
-            messagesApi.endpoints.addMessage.initiate({
-              conversationId: conversation?.data?.id,
-              sender: senderUser,
-              receiver: receiverUser,
-              message: arg.message,
-              timestamp: arg.timestamp,
-            })
-          );
+            const senderUser = arg.loggedInUser;
+            const receiverUser = users?.find(
+              (user: any) => user.email !== arg.loggedInUser?.email
+            );
+
+            dispatch(
+              messagesApi.endpoints.addMessage.initiate({
+                conversationId: conversation?.data?.id,
+                sender: senderUser,
+                receiver: receiverUser,
+                message: arg.message,
+                timestamp: arg.timestamp,
+              })
+            );
+          }
+        } catch (error) {
+          // patchResult.undo();
         }
       },
     }),
@@ -63,7 +80,6 @@ export const conversationsApi = apiSlice.injectEndpoints({
             }
           )
         );
-
         // optimistic cache update end
 
         try {
@@ -76,7 +92,7 @@ export const conversationsApi = apiSlice.injectEndpoints({
               (user: any) => user.email !== arg.data?.loggedInUser?.email
             );
 
-            dispatch(
+            const res = await dispatch(
               messagesApi.endpoints.addMessage.initiate({
                 conversationId: conversation?.data?.id,
                 sender: senderUser,
@@ -84,7 +100,19 @@ export const conversationsApi = apiSlice.injectEndpoints({
                 message: arg.data.message,
                 timestamp: arg.data.timestamp,
               })
+            ).unwrap();
+
+            // update messages cache pessimistically start
+            dispatch(
+              messagesApi.util.updateQueryData(
+                "getMessages",
+                arg.id.toString(),
+                (draft) => {
+                  draft.push(res);
+                }
+              )
             );
+            // update messages cache pessimistically end
           }
         } catch (error) {
           patchResult1.undo();
